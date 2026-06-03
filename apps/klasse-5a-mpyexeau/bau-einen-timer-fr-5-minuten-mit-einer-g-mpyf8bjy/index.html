@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5-Minuten Timer</title>
+    
+
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+        }
+
+        .container {
+            text-align: center;
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .timer-display {
+            font-size: 120px;
+            font-weight: bold;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+            margin: 30px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .timer-display.warning {
+            color: #ff6b6b;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 100%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-start:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-pause {
+            background: #ffa500;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-pause:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 165, 0, 0.4);
+        }
+
+        .btn-pause:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-reset {
+            background: #ff6b6b;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #666;
+            font-weight: bold;
+            min-height: 30px;
+        }
+
+        .status.finished {
+            color: #667eea;
+            animation: bounce 0.5s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .emoji {
+            font-size: 40px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .emoji.show {
+            display: block;
+            animation: float 1s ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); opacity: 1; }
+            50% { transform: translateY(-20px) scale(1.2); }
+        }
+    </style>
+
+
+</head>
+<body>
+
+    <div class="container">
+        <h1>⏱️ 5-Minuten Timer</h1>
+        
+        <div class="timer-display" id="timerDisplay">5:00</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="controls">
+            <button class="btn-start" id="startBtn">Start</button>
+            <button class="btn-pause" id="pauseBtn" disabled>Pause</button>
+            <button class="btn-reset" id="resetBtn">Zurück</button>
+        </div>
+        
+        <div class="status" id="status"></div>
+        <div class="emoji" id="emoji">🎉</div>
+    </div>
+
+    
+
+<script>
+        const TOTAL_TIME = 5 * 60; // 5 minutes in seconds
+        let timeLeft = TOTAL_TIME;
+        let isRunning = false;
+        let intervalId = null;
+
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const progressFill = document.getElementById('progressFill');
+        const status = document.getElementById('status');
+        const emoji = document.getElementById('emoji');
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function updateDisplay() {
+            timerDisplay.textContent = formatTime(timeLeft);
+            
+            // Update progress bar
+            const progress = ((TOTAL_TIME - timeLeft) / TOTAL_TIME) * 100;
+            progressFill.style.width = progress + '%';
+            
+            // Change color when less than 1 minute
+            if (timeLeft <= 60 && timeLeft > 0) {
+                timerDisplay.classList.add('warning');
+            } else {
+                timerDisplay.classList.remove('warning');
+            }
+        }
+
+        function tick() {
+            timeLeft--;
+            updateDisplay();
+            
+            if (timeLeft <= 0) {
+                clearInterval(intervalId);
+                isRunning = false;
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+                status.textContent = '✅ Zeit abgelaufen!';
+                status.classList.add('finished');
+                emoji.classList.add('show');
+                playNotification();
+            }
+        }
+
+        function playNotification() {
+            // Create a simple beep sound
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (!isRunning && timeLeft > 0) {
+                isRunning = true;
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+                status.textContent = '⏱️ Timer läuft...';
+                status.classList.remove('finished');
+                emoji.classList.remove('show');
+                intervalId = setInterval(tick, 1000);
+            }
+        });
+
+        pauseBtn.addEventListener('click', () => {
+            isRunning = false;
+            clearInterval(intervalId);
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            status.textContent = '⏸️ Timer pausiert';
+            status.classList.remove('finished');
+        });
+
+        resetBtn.addEventListener('click', () => {
+            isRunning = false;
+            clearInterval(intervalId);
+            timeLeft = TOTAL_TIME;
+            updateDisplay();
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            status.textContent = '';
+            status.classList.remove('finished');
+            emoji.classList.remove('show');
+        });
+
+        // Initialize display
+        updateDisplay();
+    </script>
+
+
+
+</body>
+</html>
