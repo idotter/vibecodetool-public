@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klick-Spiel</title>
+    
+
+<style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .game-section {
+            text-align: center;
+        }
+
+        .timer-display {
+            font-size: 3em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #764ba2;
+            margin: 20px 0;
+            min-height: 60px;
+        }
+
+        .big-button {
+            width: 200px;
+            height: 200px;
+            font-size: 1.5em;
+            font-weight: bold;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            cursor: pointer;
+            margin: 30px auto;
+            transition: all 0.1s;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            display: block;
+        }
+
+        .big-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        .big-button:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        .big-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: linear-gradient(135deg, #999 0%, #666 100%);
+        }
+
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .start-btn, .reset-btn {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .start-btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .reset-btn {
+            background: #ff6b6b;
+        }
+
+        .reset-btn:hover {
+            background: #ff5252;
+        }
+
+        .leaderboard-section {
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid #eee;
+        }
+
+        .leaderboard-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .leaderboard {
+            list-style: none;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            margin: 8px 0;
+            background: #f5f5f5;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .leaderboard-item.gold {
+            border-left-color: #ffd700;
+            background: linear-gradient(90deg, #fffacd 0%, #f5f5f5 100%);
+        }
+
+        .leaderboard-item.silver {
+            border-left-color: #c0c0c0;
+        }
+
+        .leaderboard-item.bronze {
+            border-left-color: #cd7f32;
+        }
+
+        .rank {
+            font-weight: bold;
+            font-size: 1.3em;
+            color: #667eea;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .leaderboard-item.gold .rank {
+            color: #ffd700;
+        }
+
+        .leaderboard-item.silver .rank {
+            color: #c0c0c0;
+        }
+
+        .leaderboard-item.bronze .rank {
+            color: #cd7f32;
+        }
+
+        .player-name {
+            flex: 1;
+            text-align: left;
+            margin-left: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .player-score {
+            font-weight: bold;
+            color: #764ba2;
+            font-size: 1.1em;
+        }
+
+        .status-message {
+            text-align: center;
+            font-size: 1.2em;
+            color: #764ba2;
+            margin: 20px 0;
+            min-height: 30px;
+            font-weight: bold;
+        }
+
+        .empty-leaderboard {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        .name-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 1em;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .name-input:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .timer-display.warning {
+            animation: pulse 0.5s infinite;
+            color: #ff6b6b;
+        }
+    </style>
+
+
+</head>
+<body>
+
+    <div class="container">
+        <h1>⚡ Klick-Spiel ⚡</h1>
+
+        <div class="game-section">
+            <div class="timer-display" id="timer">10</div>
+            <div class="score-display" id="score">0</div>
+            
+            <input 
+                type="text" 
+                id="playerName" 
+                class="name-input" 
+                placeholder="Dein Name (optional)"
+                maxlength="20"
+            >
+
+            <button class="big-button" id="clickButton" onclick="handleClick()">
+                KLICK!
+            </button>
+
+            <div class="button-container">
+                <button class="start-btn" id="startBtn" onclick="startGame()">Spiel starten</button>
+                <button class="reset-btn" id="resetBtn" onclick="resetGame()" style="display:none;">Zurücksetzen</button>
+            </div>
+
+            <div class="status-message" id="statusMessage"></div>
+        </div>
+
+        <div class="leaderboard-section">
+            <h2>🏆 Top 5 Bestenliste</h2>
+            <ul class="leaderboard" id="leaderboard">
+                <li class="empty-leaderboard">Laden...</li>
+            </ul>
+        </div>
+    </div>
+
+    
+
+<script>
+        let gameActive = false;
+        let clicks = 0;
+        let timeLeft = 10;
+        let timerInterval = null;
+
+        const clickButton = document.getElementById('clickButton');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const playerNameInput = document.getElementById('playerName');
+        const leaderboardList = document.getElementById('leaderboard');
+
+        function handleClick() {
+            if (gameActive) {
+                clicks++;
+                scoreDisplay.textContent = clicks;
+            }
+        }
+
+        function startGame() {
+            gameActive = true;
+            clicks = 0;
+            timeLeft = 10;
+            scoreDisplay.textContent = '0';
+            timerDisplay.textContent = '10';
+            statusMessage.textContent = '';
+            clickButton.disabled = false;
+            startBtn.disabled = true;
+            resetBtn.style.display = 'none';
+            playerNameInput.disabled = true;
+            timerDisplay.classList.remove('warning');
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+
+                if (timeLeft <= 3) {
+                    timerDisplay.classList.add('warning');
+                }
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function endGame() {
+            clearInterval(timerInterval);
+            gameActive = false;
+            clickButton.disabled = true;
+            startBtn.disabled = false;
+            resetBtn.style.display = 'inline-block';
+            playerNameInput.disabled = false;
+            statusMessage.textContent = `Spiel vorbei! Du hast ${clicks} Punkte!`;
+            timerDisplay.classList.remove('warning');
+
+            saveScore();
+            loadLeaderboard();
+        }
+
+        async function saveScore() {
+            try {
+                const playerName = playerNameInput.value.trim() || `Spieler ${Math.floor(Math.random() * 1000)}`;
+                const score = clicks;
+
+                await VibeStore.append('klickspiel_scores', {
+                    name: playerName,
+                    score: score,
+                    timestamp: new Date().toISOString()
+                }, { scope: 'shared' });
+            } catch (error) {
+                console.error('Fehler beim Speichern des Scores:', error);
+            }
+        }
+
+        async function loadLeaderboard() {
+            try {
+                const scores = await VibeStore.get('klickspiel_scores', { scope: 'shared' });
+                const scoreArray = Array.isArray(scores) ? scores : [];
+
+                // Sortiere nach Score (absteigend)
+                scoreArray.sort((a, b) => b.score - a.score);
+
+                // Nimm nur Top 5
+                const top5 = scoreArray.slice(0, 5);
+
+                if (top5.length === 0) {
+                    leaderboardList.innerHTML = '<li class="empty-leaderboard">Noch keine Scores. Sei der Erste!</li>';
+                    return;
+                }
+
+                leaderboardList.innerHTML = top5.map((item, index) => {
+                    let medalClass = '';
+                    let medalEmoji = '';
+
+                    if (index === 0) {
+                        medalClass = 'gold';
+                        medalEmoji = '🥇';
+                    } else if (index === 1) {
+                        medalClass = 'silver';
+                        medalEmoji = '🥈';
+                    } else if (index === 2) {
+                        medalClass = 'bronze';
+                        medalEmoji = '🥉';
+                    }
+
+                    return `
+                        <li class="leaderboard-item ${medalClass}">
+                            <span class="rank">${index + 1}. ${medalEmoji}</span>
+                            <span class="player-name">${item.name}</span>
+                            <span class="player-score">${item.score}</span>
+                        </li>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Fehler beim Laden der Bestenliste:', error);
+                leaderboardList.innerHTML = '<li class="empty-leaderboard">Fehler beim Laden der Bestenliste</li>';
+            }
+        }
+
+        function resetGame() {
+            gameActive = false;
+            clicks = 0;
+            timeLeft = 10;
+            scoreDisplay.textContent = '0';
+            timerDisplay.textContent = '10';
+            statusMessage.textContent = '';
+            clickButton.disabled = false;
+            startBtn.disabled = false;
+            resetBtn.style.display = 'none';
+            playerNameInput.disabled = false;
+            playerNameInput.value = '';
+            timerDisplay.classList.remove('warning');
+            clearInterval(timerInterval);
+        }
+
+        // Laden der Bestenliste beim Start
+        loadLeaderboard();
+    </script>
+
+
+
+</body>
+</html>
